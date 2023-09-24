@@ -1,53 +1,57 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>addrman-observer</title>
-    <style type="text/css">
-      div#tooltip {
-        position: absolute;
-        display: inline-block;
-        padding: 10px;
-        background: white;
-        pointer-events: none;
-        opacity: 0;
-        z-index: 1;
-      }
-    </style>
-    <link href="css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-  </head>
-  <body>
-        <h1>addrman-observer</h1>
-        <input type="file" id="selectFiles" value="Load" />
-        <button id="load-file">load-file</button>
-        <br />
-        <input type="text" id="url" value="https://..." />
-        <button id="load-url">load-url</button>
-        <br>
-        <label>
-            mouse-over highlight
-            <select name="highlight" id="highlight">
-                <option value="no-highlight">no highlight</option>
-                <option value="same-source">same source</option>
-                <option value="same-address">same address</option>
-                <option value="same-port">same port</option>
-            </select>
-        </label>
-        <div style="display: flex;">
-            <div style="position: relative; display:inline-block;">
-                <canvas id="newCanvasHighlight"></canvas>
-                <canvas id="newCanvas"></canvas>
-            </div>
-            <div style="position: relative; display:inline-block;">
-                <canvas id="triedCanvasHighlight"></canvas>
-                <canvas id="triedCanvas"></canvas>
-            </div>
-        </div>
-        <div id="tooltip"></div>
 
-        <script src="js/d3.v7.min.js"></script>
-        <script src="js/draw.js"></script>
-        <script src="js/main.js"></script>
-    </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>addrman-observer</title>
+  <style type="text/css">
+    div#tooltip {
+      position: absolute;
+      display: inline-block;
+      padding: 10px;
+      background: white;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 1;
+    }
+  </style>
+  <link href="css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+
+<body>
+  <h1>addrman-observer</h1>
+  <input type="file" id="selectFiles" value="Load" />
+  <button id="load-file">load-file</button>
+  <br />
+  <input type="text" id="url" value="https://..." />
+  <button id="load-url">load-url</button>
+  <br>
+  <label>
+    mouse-over highlight
+    <select name="highlight" id="highlight">
+      <option value="no-highlight">no highlight</option>
+      <option value="same-source">same source</option>
+      <option value="same-address">same address</option>
+      <option value="same-port">same port</option>
+    </select>
+  </label>
+  <div style="display: flex;">
+    <div style="position: relative; display:inline-block;">
+      <canvas id="newCanvasHighlight"></canvas>
+      <canvas id="newCanvas"></canvas>
+    </div>
+    <div style="position: relative; display:inline-block;">
+      <canvas id="triedCanvasHighlight"></canvas>
+      <canvas id="triedCanvas"></canvas>
+    </div>
+  </div>
+  <div id="tooltip"></div>
+
+  <script src="js/d3.v7.min.js"></script>
+  <script src="js/draw.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
 </html>
