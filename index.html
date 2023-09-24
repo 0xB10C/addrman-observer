@@ -20,13 +20,57 @@
     integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 </head>
 
-<body>
-  <h1>addrman-observer</h1>
-  <input type="file" id="selectFiles" value="Load" />
-  <button id="load-file">load-file</button>
+<body class="container-xxl">
+  <nav class="navbar bg-body-tertiary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo.svg" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+        addrman-observer
+      </a>
+    </div>
+  </nav>
+
+  <div class="card">
+    <div class="card-body">
+      Load addrman JSON data
+
+      <div class="container text-center">
+        <div class="row row-cols-3">
+          <div class="col">
+            <fieldset style="border: 1px dashed black;" class="text-center mb-3 p-4">
+              <p class="small my-2">Drag &amp; Drop <br>getaddrmaninfo json dumps</p>
+              <input id="selectFiles" class="position-absolute invisible" type="file" accept="application/json" />
+              <label class="btn btn-outline-primary" for="selectFiles">Choose JSON file</label>
+            </fieldset>
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="url" placeholder="https://..." />
+            <br>
+            <button class="btn btn-outline-primary" id="load-url">fetch from URL</button>
+          </div>
+          <div class="col">
+            <ol class="list-group">
+              <li class="list-group-item d-flex justify-content-between align-items-start">
+                <div>
+                  Sample SigNet Addrman 1
+                </div>
+                <button class="btn btn-outline-primary" onclick="loadFromURL('https://gist.githubusercontent.com/0xB10C/f2daea14ae0b0c06207a687e8b65202d/raw/befdba56adc0b3ce6cfdb9ceda70d276d5c2b2c3/getaddrmaninfo-signet.json')">load</button>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-start disabled">
+                <div>
+                  Sample Addrman 2
+                </div>
+                <button class="btn btn-outline-primary disabled">load</button>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <br />
-  <input type="text" id="url" value="https://..." />
-  <button id="load-url">load-url</button>
   <br>
   <label>
     mouse-over highlight
@@ -37,16 +81,33 @@
       <option value="same-port">same port</option>
     </select>
   </label>
-  <div style="display: flex;">
-    <div style="position: relative; display:inline-block;">
-      <canvas id="newCanvasHighlight"></canvas>
-      <canvas id="newCanvas"></canvas>
+
+  <div class="accordion border-bottom-0">
+  <details class="accordion-item" open>
+    <summary class="accordion-button">
+      <div class="accordion-header user-select-none">new table</div>
+    </summary>
+    <div class="accordion-body border-bottom">
+      <div class="m-2" style="position: relative; display:inline-block;">
+        <canvas id="newCanvasHighlight"></canvas>
+        <canvas id="newCanvas"></canvas>
+      </div>
     </div>
-    <div style="position: relative; display:inline-block;">
-      <canvas id="triedCanvasHighlight"></canvas>
-      <canvas id="triedCanvas"></canvas>
+  </details>
+
+  <details class="accordion-item" open>
+    <summary class="accordion-button">
+      <div class="accordion-header user-select-none">tried table</div>
+    </summary>
+    <div class="accordion-body border-bottom">
+      <div class="m-2" style="position: relative; display:inline-block;">
+        <canvas id="triedCanvasHighlight"></canvas>
+        <canvas id="triedCanvas"></canvas>
+      </div>
     </div>
-  </div>
+  </details>
+</div>
+
   <div id="tooltip"></div>
 
   <script src="js/d3.v7.min.js"></script>

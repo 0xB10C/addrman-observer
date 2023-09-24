@@ -29,8 +29,7 @@ function processGetAddrmanInfo(getaddrmaninfo) {
   draw(false, triedTableState);
 }
 
-document.getElementById("load-url").onclick = function () {
-  let url = document.getElementById("url").value;
+function loadFromURL(url) {
   fetch(url)
     .then((res) => res.json())
     .then((getaddrmaninfo) => {
@@ -39,20 +38,22 @@ document.getElementById("load-url").onclick = function () {
     .catch((err) => {
       throw err;
     });
+}
+
+document.getElementById("load-url").onclick = function () {
+  let url = document.getElementById("url").value;
+  loadFromURL(url);
 };
 
-document.getElementById("load-file").onclick = function () {
-  var files = document.getElementById("selectFiles").files;
-  if (files.length != 1) {
-    console.log("Selected multiple files. Please only select a single file.");
-    return false;
+document.getElementById('selectFiles').addEventListener('change', function(e) {
+  if (e.target.files[0]) {
+    var fr = new FileReader();
+    fr.onload = function (e) {
+      let getaddrmaninfo = JSON.parse(e.target.result);
+      processGetAddrmanInfo(getaddrmaninfo);
+    };
+    var files = document.getElementById("selectFiles").files;
+
+    fr.readAsText(files.item(0));
   }
-
-  var fr = new FileReader();
-  fr.onload = function (e) {
-    let getaddrmaninfo = JSON.parse(e.target.result);
-    processGetAddrmanInfo(getaddrmaninfo);
-  };
-
-  fr.readAsText(files.item(0));
-};
+});
