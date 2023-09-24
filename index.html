@@ -1,21 +1,23 @@
+<!doctype html>
 <html lang="en">
-
-    <head>
-        <title>addrman-observer</title>
-        <script src="js/d3.v7.min.js"></script>
-        <style type="text/css">
-            div#tooltip {
-                position: absolute;
-                display: inline-block;
-                padding: 10px;
-                background: white;
-                pointer-events: none;
-                opacity: 0;
-                z-index: 1;
-            }
-        </style>
-    </head>
-    <body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>addrman-observer</title>
+    <style type="text/css">
+      div#tooltip {
+        position: absolute;
+        display: inline-block;
+        padding: 10px;
+        background: white;
+        pointer-events: none;
+        opacity: 0;
+        z-index: 1;
+      }
+    </style>
+    <link href="css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  </head>
+  <body>
         <h1>addrman-observer</h1>
         <input type="file" id="selectFiles" value="Load" />
         <button id="load-file">load-file</button>
@@ -43,6 +45,8 @@
             </div>
         </div>
         <div id="tooltip"></div>
+
+        <script src="js/d3.v7.min.js"></script>
         <script>
         const NUM_NEW_BUCKETS = 1024
         const NUM_TRIED_BUCKETS = 256
