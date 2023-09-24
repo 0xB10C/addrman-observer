@@ -287,6 +287,6 @@ function formatTooltip(addrinfo) {
         <tr><td>source</td><td>${addrinfo.source}</td></tr>
         <tr><td>bucket</td><td>${addrinfo.bucket}</td></tr>
         <tr><td>position</td><td>${addrinfo.position}</td></tr>
-        <tr><td>address</td><td>${addrinfo.services}</td></tr>
+        <tr><td>services</td><td>${addrinfo.services}</td></tr>
     </table>`;
 }
