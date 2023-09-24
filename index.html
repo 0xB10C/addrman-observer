@@ -18,8 +18,10 @@
     <body>
         <h1>addrman-observer</h1>
         <input type="file" id="selectFiles" value="Load" />
+        <button id="load-file">load-file</button>
         <br />
-        <button id="load">load</button>
+        <input type="text" id="url" value="https://..." />
+        <button id="load-url">load-url</button>
         <br>
         <label>
             mouse-over highlight
@@ -305,7 +307,20 @@
           draw(false, triedTableState);
         }
 
-        document.getElementById('load').onclick = function() {
+        document.getElementById('load-url').onclick = function() {
+          let url = document.getElementById("url").value;
+          fetch(url)
+            .then(res => res.json())
+            .then(getaddrmaninfo => {
+                processGetAddrmanInfo(getaddrmaninfo);
+              }
+            )
+            .catch(err => { throw err });
+        }
+
+
+        document.getElementById('load-file').onclick = function() {
+
           var files = document.getElementById('selectFiles').files;
           if (files.length != 1) {
             console.log("Selected multiple files. Please only select a single file.");
@@ -320,6 +335,7 @@
 
           fr.readAsText(files.item(0));
         };
+
 
         </script>
     </body>
