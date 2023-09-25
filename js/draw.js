@@ -28,10 +28,6 @@ function address_network_type(addrinfo) {
   return "unknown";
 }
 
-function setWebsocketStatus(status) {
-  document.getElementById("websocket-status").innerText = status;
-}
-
 function port(addrinfo) {
   return addrinfo.address.split(":").slice(-1);
 }
