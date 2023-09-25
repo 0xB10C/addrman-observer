@@ -1,5 +1,19 @@
-let newTableState;
-let triedTableState;
+let newTableState = init_table(
+    NUM_NEW_BUCKETS,
+    NEW_HEIGHT,
+    "#newCanvas",
+    "#newCanvasHighlight",
+    NEW_BUCKETS_PER_BUCKET_COLUMN
+  );
+let triedTableState = init_table(
+    NUM_TRIED_BUCKETS,
+    TRIED_HEIGHT,
+    "#triedCanvas",
+    "#triedCanvasHighlight",
+    TRIED_BUCKETS_PER_BUCKET_COLUMN
+  );
+draw(false, newTableState);
+draw(false, triedTableState);
 
 function processGetAddrmanInfo(getaddrmaninfo) {
   newTableState = init_table(
