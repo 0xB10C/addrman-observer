@@ -5,6 +5,7 @@ let newTableState = init_table(
     "#newCanvasHighlight",
     NEW_BUCKETS_PER_BUCKET_COLUMN
   );
+/*
 let triedTableState = init_table(
     NUM_TRIED_BUCKETS,
     TRIED_HEIGHT,
@@ -12,8 +13,9 @@ let triedTableState = init_table(
     "#triedCanvasHighlight",
     TRIED_BUCKETS_PER_BUCKET_COLUMN
   );
+*/
 draw(false, newTableState);
-draw(false, triedTableState);
+//draw(false, triedTableState);
 
 function processGetRawAddrman(addrman) {
   newTableState = init_table(
@@ -23,13 +25,14 @@ function processGetRawAddrman(addrman) {
     "#newCanvasHighlight",
     NEW_BUCKETS_PER_BUCKET_COLUMN
   );
-  triedTableState = init_table(
+  /*triedTableState = init_table(
     NUM_TRIED_BUCKETS,
     TRIED_HEIGHT,
     "#triedCanvas",
     "#triedCanvasHighlight",
     TRIED_BUCKETS_PER_BUCKET_COLUMN
   );
+  */
 
   for (const bucket_position in addrman.new) {
     entry = addrman.new[bucket_position];
@@ -39,6 +42,7 @@ function processGetRawAddrman(addrman) {
     newTableState.tree.add(entry);
   }
 
+  /*
   for (const bucket_position in addrman.tried) {
     entry = addrman.tried[bucket_position];
     entry["bucket"] = parseInt(bucket_position.split("/")[0]);
@@ -46,9 +50,9 @@ function processGetRawAddrman(addrman) {
     triedTableState.table[entry.bucket * 64 + entry.position] = entry;
     triedTableState.tree.add(entry);
   }
-
+  */
   draw(false, newTableState);
-  draw(false, triedTableState);
+  //draw(false, triedTableState);
 }
 
 function loadFromURL(url) {
