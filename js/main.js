@@ -15,7 +15,7 @@ let triedTableState = init_table(
 draw(false, newTableState);
 draw(false, triedTableState);
 
-function processGetAddrmanInfo(getaddrmaninfo) {
+function processGetRawAddrman(addrman) {
   newTableState = init_table(
     NUM_NEW_BUCKETS,
     NEW_HEIGHT,
@@ -30,15 +30,23 @@ function processGetAddrmanInfo(getaddrmaninfo) {
     "#triedCanvasHighlight",
     TRIED_BUCKETS_PER_BUCKET_COLUMN
   );
-  for (const entry of getaddrmaninfo.new_table) {
+
+  for (const bucket_position in addrman.new) {
+    entry = addrman.new[bucket_position];
+    entry["bucket"] = parseInt(bucket_position.split("/")[0]);
+    entry["position"] = parseInt(bucket_position.split("/")[1]);
     newTableState.table[entry.bucket * 64 + entry.position] = entry;
-    newTableState.tree.add(preprocess(entry));
+    newTableState.tree.add(entry);
   }
 
-  for (const entry of getaddrmaninfo.tried_table) {
+  for (const bucket_position in addrman.tried) {
+    entry = addrman.tried[bucket_position];
+    entry["bucket"] = parseInt(bucket_position.split("/")[0]);
+    entry["position"] = parseInt(bucket_position.split("/")[1]);
     triedTableState.table[entry.bucket * 64 + entry.position] = entry;
-    triedTableState.tree.add(preprocess(entry));
+    triedTableState.tree.add(entry);
   }
+
   draw(false, newTableState);
   draw(false, triedTableState);
 }
@@ -46,8 +54,8 @@ function processGetAddrmanInfo(getaddrmaninfo) {
 function loadFromURL(url) {
   fetch(url)
     .then((res) => res.json())
-    .then((getaddrmaninfo) => {
-      processGetAddrmanInfo(getaddrmaninfo);
+    .then((getrawaddrman) => {
+      processGetRawAddrman(getrawaddrman);
     })
     .catch((err) => {
       throw err;
@@ -63,8 +71,8 @@ document.getElementById('selectFiles').addEventListener('change', function(e) {
   if (e.target.files[0]) {
     var fr = new FileReader();
     fr.onload = function (e) {
-      let getaddrmaninfo = JSON.parse(e.target.result);
-      processGetAddrmanInfo(getaddrmaninfo);
+      let getrawaddrman = JSON.parse(e.target.result);
+      processGetRawAddrman(getrawaddrman);
     };
     var files = document.getElementById("selectFiles").files;
 

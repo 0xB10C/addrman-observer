@@ -13,31 +13,6 @@ const TRIED_BUCKETS_PER_BUCKET_COLUMN = 16;
 const NEW_HEIGHT = BUCKET_PIXEL_SIZE * NEW_BUCKETS_PER_BUCKET_COLUMN;
 const TRIED_HEIGHT = BUCKET_PIXEL_SIZE * TRIED_BUCKETS_PER_BUCKET_COLUMN;
 
-function address_network_type(addrinfo) {
-  if (addrinfo.address.includes("onion")) {
-    return "tor";
-  } else if (addrinfo.address.includes("internal")) {
-    return "internal";
-  } else if (addrinfo.address.includes("i2p")) {
-    return "i2p";
-  } else if (addrinfo.address.includes("[")) {
-    return "ipv6";
-  } else if (addrinfo.address.split(".").length == 4) {
-    return "ipv4";
-  }
-  return "unknown";
-}
-
-function port(addrinfo) {
-  return addrinfo.address.split(":").slice(-1);
-}
-
-function preprocess(addrinfo) {
-  addrinfo.port = port(addrinfo);
-  addrinfo.net_type = address_network_type(addrinfo);
-  return addrinfo;
-}
-
 network_to_color = {
   ipv4: d3.schemeDark2[0],
   ipv6: d3.schemeDark2[1],
@@ -265,7 +240,7 @@ function draw(is_zoom, tableState) {
         }
       } else {
         tableState.context.fillStyle =
-          network_to_color[address_network_type(addrInfo)];
+          network_to_color[addrInfo.network];
         tableState.context.fillRect(x, y, ADDR_PIXEL_SIZE, ADDR_PIXEL_SIZE); // x, y, width and height
       }
       position++;
@@ -279,10 +254,13 @@ function formatTooltip(addrinfo) {
   return `
     <table>
         <tr><td>address</td><td>${addrinfo.address}</td></tr>
-        <tr><td>network</td><td>${addrinfo.net_type}</td></tr>
-        <tr><td>source</td><td>${addrinfo.source}</td></tr>
+        <tr><td>port</td><td>${addrinfo.port}</td></tr>
+        <tr><td>services</td><td>${addrinfo.services}</td></tr>
+        <tr><td>time</td><td>${addrinfo.time}</td></tr>
+        <tr><td>network</td><td>${addrinfo.network}</td></tr>
         <tr><td>bucket</td><td>${addrinfo.bucket}</td></tr>
         <tr><td>position</td><td>${addrinfo.position}</td></tr>
-        <tr><td>services</td><td>${addrinfo.services}</td></tr>
+        <tr><td>source</td><td>${addrinfo.source}</td></tr>
+        <tr><td>source network</td><td>${addrinfo.source_network}</td></tr>
     </table>`;
 }
