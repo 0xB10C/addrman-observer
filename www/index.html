@@ -20,7 +20,7 @@
     integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 </head>
 
-<body class="container-xxl">
+<body class="container-fluid">
   <nav class="navbar bg-body-tertiary">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">
@@ -76,31 +76,10 @@
     </select>
   </label>
 
-  <div class="accordion border-bottom-0">
-  <details class="accordion-item" open>
-    <summary class="accordion-button">
-      <div class="accordion-header user-select-none">new table</div>
-    </summary>
-    <div class="accordion-body border-bottom">
-      <div class="m-2" style="position: relative; display:inline-block;">
-        <canvas id="newCanvasHighlight"></canvas>
-        <canvas id="newCanvas"></canvas>
-      </div>
-    </div>
-  </details>
-
-  <details class="accordion-item" open>
-    <summary class="accordion-button">
-      <div class="accordion-header user-select-none">tried table</div>
-    </summary>
-    <div class="accordion-body border-bottom">
-      <div class="m-2" style="position: relative; display:inline-block;">
-        <canvas id="triedCanvasHighlight"></canvas>
-        <canvas id="triedCanvas"></canvas>
-      </div>
-    </div>
-  </details>
-</div>
+  <div style="position: relative; display:inline-block;">
+    <canvas id="newCanvasHighlight"></canvas>
+    <canvas id="newCanvas"></canvas>
+  </div>
 
   <div id="tooltip"></div>
 

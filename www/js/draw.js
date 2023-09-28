@@ -39,37 +39,50 @@ function calc_addr_x_y(bucket, bucket_pos, buckets_per_bucket_column) {
 const highlightSelect = d3.select("#highlight");
 const tooltip = d3.select("#tooltip");
 
-function init_table(
+function init_addrman_tables(
   size,
   height,
   canvasName,
   canvasHighlightName,
   buckets_per_bucket_column
 ) {
-  let table = new Array(size * 64);
-  let tableAddrPos = new Array(size * 64);
+  let newTable = new Array(NUM_NEW_BUCKETS * NUM_ADDR_PER_BUCKET);
+  let newTableAddrPos = new Array(NUM_NEW_BUCKETS * NUM_ADDR_PER_BUCKET);
+  let triedTable = new Array(NUM_TRIED_BUCKETS * NUM_ADDR_PER_BUCKET);
+  let triedTableAddrPos = new Array(NUM_TRIED_BUCKETS * NUM_ADDR_PER_BUCKET);
 
-  for (const i of table.keys()) {
+  for (const i of newTable.keys()) {
     let bucket = Math.floor(i / NUM_ADDR_PER_BUCKET);
-    let bucket_pos = i % NUM_ADDR_PER_BUCKET;
-    let [x, y] = calc_addr_x_y(bucket, bucket_pos, buckets_per_bucket_column);
-    tableAddrPos[i] = [x, y];
+    let position = i % NUM_ADDR_PER_BUCKET;
+    let [x, y] = calc_addr_x_y(bucket, position, NEW_BUCKETS_PER_BUCKET_COLUMN);
+    newTableAddrPos[i] = [x, y];
   }
 
+  const TRIED_TABLE_X_OFFSET = BUCKET_PIXEL_SIZE * NEW_BUCKETS_PER_BUCKET_COLUMN + 32;
+  for (const i of triedTable.keys()) {
+    let bucket = Math.floor(i / NUM_ADDR_PER_BUCKET);
+    let position = i % NUM_ADDR_PER_BUCKET;
+    let [x, y] = calc_addr_x_y(bucket, position, TRIED_BUCKETS_PER_BUCKET_COLUMN);
+    triedTableAddrPos[i] = [x + TRIED_TABLE_X_OFFSET, y];
+  }
+
+  let width = window.innerWidth * 0.9;
+
+  // TODO: ternary check if tried or new
   let tree = d3
     .quadtree()
     .x((d) => tableAddrPos[d.bucket * NUM_ADDR_PER_BUCKET + d.position][0])
     .y((d) => tableAddrPos[d.bucket * NUM_ADDR_PER_BUCKET + d.position][1])
     .extent([
       [0, 0],
-      [height * 1.1, height * 1.1],
+      [width * 1.1, height * 1.1],
     ]);
 
   // The main canvas for drawing buckets and addresses
   var canvas = d3.select(canvasName);
   canvas
-    .attr("width", height)
     .attr("height", height)
+    .attr("width", width)
     .style("position", "absolute")
     .style("left", "0")
     .style("top", "0")
@@ -80,7 +93,7 @@ function init_table(
   // A highlight canvas for drawing mouse-over highlights
   var canvasHighlight = d3.select(canvasHighlightName);
   canvasHighlight
-    .attr("width", height)
+    .attr("width", width)
     .attr("height", height)
     .style("border", "solid 1px red");
   var contextHighlight = canvasHighlight.node().getContext("2d");
@@ -93,15 +106,16 @@ function init_table(
     tree: tree,
     currentZoom: d3.zoomIdentity,
     height: height,
+    width: width,
     num_buckets: size,
   };
 
   const zoomContext = d3
     .zoom()
-    .scaleExtent([1, 16])
+    .scaleExtent([0.33, 16])
     .translateExtent([
       [0, 0],
-      [height, height],
+      [width, height],
     ])
     .on("zoom", ({ transform }) => {
       state.currentZoom = transform;
@@ -147,7 +161,7 @@ function draw_background(is_zoom, tableState, highlight) {
   tableState.contextHighlight.clearRect(
     0,
     0,
-    tableState.height,
+    tableState.width,
     tableState.height
   );
   tableState.contextHighlight.translate(transform.x, transform.y);
@@ -221,7 +235,7 @@ function draw(is_zoom, tableState) {
   );
   transform = tableState.currentZoom;
   tableState.context.save();
-  tableState.context.clearRect(0, 0, tableState.height, tableState.height);
+  tableState.context.clearRect(0, 0, tableState.width, tableState.height);
   tableState.context.translate(transform.x, transform.y);
   tableState.context.scale(transform.k, transform.k);
   tableState.context.beginPath();
