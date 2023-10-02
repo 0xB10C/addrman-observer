@@ -1,58 +1,32 @@
-let newTableState = init_table(
-    NUM_NEW_BUCKETS,
-    NEW_HEIGHT,
-    "#newCanvas",
-    "#newCanvasHighlight",
-    NEW_BUCKETS_PER_BUCKET_COLUMN
-  );
-/*
-let triedTableState = init_table(
-    NUM_TRIED_BUCKETS,
-    TRIED_HEIGHT,
-    "#triedCanvas",
-    "#triedCanvasHighlight",
-    TRIED_BUCKETS_PER_BUCKET_COLUMN
-  );
-*/
-draw(false, newTableState);
-//draw(false, triedTableState);
+let state = init_addrman_tables(
+  0,
+  NEW_HEIGHT,
+  "#canvas",
+  "#canvas_highlight",
+);
+
+draw(false, state);
 
 function processGetRawAddrman(addrman) {
-  newTableState = init_table(
-    NUM_NEW_BUCKETS,
+  state = init_addrman_tables(
+    0,
     NEW_HEIGHT,
-    "#newCanvas",
-    "#newCanvasHighlight",
-    NEW_BUCKETS_PER_BUCKET_COLUMN
+    "#canvas",
+    "#canvas_highlight",
   );
-  /*triedTableState = init_table(
-    NUM_TRIED_BUCKETS,
-    TRIED_HEIGHT,
-    "#triedCanvas",
-    "#triedCanvasHighlight",
-    TRIED_BUCKETS_PER_BUCKET_COLUMN
-  );
-  */
 
-  for (const bucket_position in addrman.new) {
-    entry = addrman.new[bucket_position];
-    entry["bucket"] = parseInt(bucket_position.split("/")[0]);
-    entry["position"] = parseInt(bucket_position.split("/")[1]);
-    newTableState.table[entry.bucket * 64 + entry.position] = entry;
-    newTableState.tree.add(entry);
+  for (const table_name of ["new", "tried"]) {
+    for (const bucket_position in addrman[table_name]) {
+      entry = addrman[table_name][bucket_position];
+      entry["bucket"] = parseInt(bucket_position.split("/")[0]);
+      entry["position"] = parseInt(bucket_position.split("/")[1]);
+      entry["table"] = table_name;
+      state.tables[table_name].table[entry.bucket * 64 + entry.position] = entry;
+      state.tree.add(entry);
+    }
   }
 
-  /*
-  for (const bucket_position in addrman.tried) {
-    entry = addrman.tried[bucket_position];
-    entry["bucket"] = parseInt(bucket_position.split("/")[0]);
-    entry["position"] = parseInt(bucket_position.split("/")[1]);
-    triedTableState.table[entry.bucket * 64 + entry.position] = entry;
-    triedTableState.tree.add(entry);
-  }
-  */
-  draw(false, newTableState);
-  //draw(false, triedTableState);
+  draw(false, state);
 }
 
 function loadFromURL(url) {

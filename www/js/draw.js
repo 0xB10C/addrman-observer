@@ -8,10 +8,10 @@ const ADDR_PIXEL_SIZE_AND_PADDING = ADDR_PIXEL_SIZE + ADDR_PIXEL_PADDING;
 const BUCKET_PIXEL_PADDING = 2;
 const BUCKET_PIXEL_SIZE =
   NUM_ADDR_PER_ADDR_COLUMN * ADDR_PIXEL_SIZE_AND_PADDING + BUCKET_PIXEL_PADDING;
-const NEW_BUCKETS_PER_BUCKET_COLUMN = 32;
-const TRIED_BUCKETS_PER_BUCKET_COLUMN = 16;
-const NEW_HEIGHT = BUCKET_PIXEL_SIZE * NEW_BUCKETS_PER_BUCKET_COLUMN;
-const TRIED_HEIGHT = BUCKET_PIXEL_SIZE * TRIED_BUCKETS_PER_BUCKET_COLUMN;
+const NEW_BUCKETS_PER_BUCKET_ROW = 32;
+const TRIED_BUCKETS_PER_BUCKET_ROW = 16;
+const NEW_HEIGHT = BUCKET_PIXEL_SIZE * NEW_BUCKETS_PER_BUCKET_ROW;
+const TRIED_HEIGHT = BUCKET_PIXEL_SIZE * TRIED_BUCKETS_PER_BUCKET_ROW;
 
 network_to_color = {
   ipv4: d3.schemeDark2[0],
@@ -43,36 +43,40 @@ function init_addrman_tables(
   size,
   height,
   canvasName,
-  canvasHighlightName,
-  buckets_per_bucket_column
+  canvasHighlightName
 ) {
-  let newTable = new Array(NUM_NEW_BUCKETS * NUM_ADDR_PER_BUCKET);
-  let newTableAddrPos = new Array(NUM_NEW_BUCKETS * NUM_ADDR_PER_BUCKET);
-  let triedTable = new Array(NUM_TRIED_BUCKETS * NUM_ADDR_PER_BUCKET);
-  let triedTableAddrPos = new Array(NUM_TRIED_BUCKETS * NUM_ADDR_PER_BUCKET);
+  let tables = {
+    "new": {
+      "table": new Array(NUM_NEW_BUCKETS * NUM_ADDR_PER_BUCKET),
+      "positions": new Array(NUM_NEW_BUCKETS * NUM_ADDR_PER_BUCKET),
+      "buckets": NUM_NEW_BUCKETS,
+      "buckets_per_row": NEW_BUCKETS_PER_BUCKET_ROW,
+      "x_offset": 0,
+    },
+    "tried": {
+      "table": new Array(NUM_TRIED_BUCKETS * NUM_ADDR_PER_BUCKET),
+      "positions": new Array(NUM_TRIED_BUCKETS * NUM_ADDR_PER_BUCKET),
+      "buckets": NUM_TRIED_BUCKETS,
+      "buckets_per_row": TRIED_BUCKETS_PER_BUCKET_ROW,
+      "x_offset": BUCKET_PIXEL_SIZE * NEW_BUCKETS_PER_BUCKET_ROW + 32,
+    },
+  };
 
-  for (const i of newTable.keys()) {
-    let bucket = Math.floor(i / NUM_ADDR_PER_BUCKET);
-    let position = i % NUM_ADDR_PER_BUCKET;
-    let [x, y] = calc_addr_x_y(bucket, position, NEW_BUCKETS_PER_BUCKET_COLUMN);
-    newTableAddrPos[i] = [x, y];
-  }
-
-  const TRIED_TABLE_X_OFFSET = BUCKET_PIXEL_SIZE * NEW_BUCKETS_PER_BUCKET_COLUMN + 32;
-  for (const i of triedTable.keys()) {
-    let bucket = Math.floor(i / NUM_ADDR_PER_BUCKET);
-    let position = i % NUM_ADDR_PER_BUCKET;
-    let [x, y] = calc_addr_x_y(bucket, position, TRIED_BUCKETS_PER_BUCKET_COLUMN);
-    triedTableAddrPos[i] = [x + TRIED_TABLE_X_OFFSET, y];
+  for([_, tableInfo] of Object.entries(tables)) {
+    for (const i of tableInfo.table.keys()) {
+      let bucket = Math.floor(i / NUM_ADDR_PER_BUCKET);
+      let position = i % NUM_ADDR_PER_BUCKET;
+      let [x, y] = calc_addr_x_y(bucket, position, tableInfo.buckets_per_row);
+      tableInfo.positions[i] = [x + tableInfo.x_offset, y];
+    }
   }
 
   let width = window.innerWidth * 0.9;
 
-  // TODO: ternary check if tried or new
   let tree = d3
     .quadtree()
-    .x((d) => tableAddrPos[d.bucket * NUM_ADDR_PER_BUCKET + d.position][0])
-    .y((d) => tableAddrPos[d.bucket * NUM_ADDR_PER_BUCKET + d.position][1])
+    .x((d) => tables[d.table].positions[d.bucket * NUM_ADDR_PER_BUCKET + d.position][0])
+    .y((d) => tables[d.table].positions[d.bucket * NUM_ADDR_PER_BUCKET + d.position][1])
     .extent([
       [0, 0],
       [width * 1.1, height * 1.1],
@@ -99,15 +103,13 @@ function init_addrman_tables(
   var contextHighlight = canvasHighlight.node().getContext("2d");
 
   let state = {
-    table: table,
-    tableAddrPos: tableAddrPos,
+    tables: tables,
+    tree: tree,
     context: context,
     contextHighlight: contextHighlight,
-    tree: tree,
     currentZoom: d3.zoomIdentity,
     height: height,
     width: width,
-    num_buckets: size,
   };
 
   const zoomContext = d3
@@ -155,38 +157,32 @@ function init_addrman_tables(
   return state;
 }
 
-function draw_background(is_zoom, tableState, highlight) {
-  transform = tableState.currentZoom;
-  tableState.contextHighlight.save();
-  tableState.contextHighlight.clearRect(
-    0,
-    0,
-    tableState.width,
-    tableState.height
-  );
-  tableState.contextHighlight.translate(transform.x, transform.y);
-  tableState.contextHighlight.scale(transform.k, transform.k);
-  tableState.contextHighlight.beginPath();
-  for (position = 0; position < tableState.num_buckets; position++) {
-    let [x, y] = tableState.tableAddrPos[position * NUM_ADDR_PER_BUCKET];
-    tableState.contextHighlight.fillStyle = "#eee";
-    tableState.contextHighlight.fillRect(
-      x - 0.5,
-      y - 0.5,
-      BUCKET_PIXEL_SIZE - BUCKET_PIXEL_PADDING,
-      BUCKET_PIXEL_SIZE - BUCKET_PIXEL_PADDING
-    );
-    if (is_zoom && transform.k > 4) {
-      tableState.contextHighlight.fillStyle = "black";
-      tableState.contextHighlight.font = "2px sans-serif";
-      tableState.contextHighlight.fillText("bucket " + position, x, y + 1.5);
+function draw_background(is_zoom, state, highlight) {
+  transform = state.currentZoom;
+  state.contextHighlight.save();
+  state.contextHighlight.clearRect(0,0, state.width, state.height);
+  state.contextHighlight.translate(transform.x, transform.y);
+  state.contextHighlight.scale(transform.k, transform.k);
+  state.contextHighlight.beginPath();
+
+  for(const [_, tableInfo] of Object.entries(state.tables)) {
+    for (bucket = 0; bucket < tableInfo.buckets; bucket++) {
+      let [x, y] = tableInfo.positions[bucket * NUM_ADDR_PER_BUCKET];
+      state.contextHighlight.fillStyle = "#eee";
+      state.contextHighlight.fillRect(x - 0.5, y - 0.5, BUCKET_PIXEL_SIZE - BUCKET_PIXEL_PADDING, BUCKET_PIXEL_SIZE - BUCKET_PIXEL_PADDING);
+      if (is_zoom && transform.k > 4) {
+        state.contextHighlight.fillStyle = "black";
+        state.contextHighlight.font = "2px sans-serif";
+        state.contextHighlight.fillText("bucket " + bucket, x, y + 1.5);
+      }
     }
   }
+
   if (highlight) {
-    draw_highlight(highlight, tableState);
+    draw_highlight(highlight, state);
   }
-  tableState.contextHighlight.fill();
-  tableState.contextHighlight.restore();
+  state.contextHighlight.fill();
+  state.contextHighlight.restore();
 }
 
 function draw_highlight(addrInfo, tableState) {
@@ -218,50 +214,43 @@ function draw_highlight(addrInfo, tableState) {
         ];
       tableState.contextHighlight.strokeStyle = "black";
       tableState.contextHighlight.lineWidth = 1;
-      tableState.contextHighlight.strokeRect(
-        x,
-        y,
-        ADDR_PIXEL_SIZE,
-        ADDR_PIXEL_SIZE
-      );
+      tableState.contextHighlight.strokeRect(x, y, ADDR_PIXEL_SIZE, ADDR_PIXEL_SIZE);
     }
   }
 }
 
-function draw(is_zoom, tableState) {
+function draw(is_zoom, state) {
   d3.select("#tooltip").style("opacity", 0);
-  d3.select("#debug").text(
-    tableState.table.filter(Boolean).length + " addresses drawn"
-  );
-  transform = tableState.currentZoom;
-  tableState.context.save();
-  tableState.context.clearRect(0, 0, tableState.width, tableState.height);
-  tableState.context.translate(transform.x, transform.y);
-  tableState.context.scale(transform.k, transform.k);
-  tableState.context.beginPath();
+  transform = state.currentZoom;
+  state.context.save();
+  state.context.clearRect(0, 0, state.width, state.height);
+  state.context.translate(transform.x, transform.y);
+  state.context.scale(transform.k, transform.k);
+  state.context.beginPath();
 
-  draw_background(is_zoom, tableState);
+  draw_background(is_zoom, state);
 
   if (!is_zoom) {
-    position = 0;
-    for (const addrInfo of tableState.table) {
-      let [x, y] = tableState.tableAddrPos[position];
-      if (addrInfo === undefined) {
-        if (transform.k > 3) {
-          tableState.context.strokeStyle = "gray";
-          tableState.context.lineWidth = 0.1;
-          tableState.context.strokeRect(x, y, ADDR_PIXEL_SIZE, ADDR_PIXEL_SIZE);
+    for(const [_, tableInfo] of Object.entries(state.tables)) {
+      position = 0;
+      for (const addrInfo of tableInfo.table) {
+        let [x, y] = tableInfo.positions[position];
+        if (addrInfo === undefined) {
+          if (transform.k > 3) {
+            state.context.strokeStyle = "gray";
+            state.context.lineWidth = 0.1;
+            state.context.strokeRect(x, y, ADDR_PIXEL_SIZE, ADDR_PIXEL_SIZE);
+          }
+        } else {
+          state.context.fillStyle = network_to_color[addrInfo.network];
+          state.context.fillRect(x, y, ADDR_PIXEL_SIZE, ADDR_PIXEL_SIZE); // x, y, width and height
         }
-      } else {
-        tableState.context.fillStyle =
-          network_to_color[addrInfo.network];
-        tableState.context.fillRect(x, y, ADDR_PIXEL_SIZE, ADDR_PIXEL_SIZE); // x, y, width and height
+        position++;
       }
-      position++;
     }
   }
-  tableState.context.fill();
-  tableState.context.restore();
+  state.context.fill();
+  state.context.restore();
 }
 
 function formatTooltip(addrinfo) {
