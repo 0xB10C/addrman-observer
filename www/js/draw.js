@@ -185,36 +185,36 @@ function draw_background(is_zoom, state, highlight) {
   state.contextHighlight.restore();
 }
 
-function draw_highlight(addrInfo, tableState) {
-  let addrToHighlight = [];
-  switch (highlightSelect.node().value) {
-    case "same-source":
-      addrToHighlight = tableState.table
-        .filter(Boolean)
-        .filter((a) => a.source == addrInfo.source);
-      break;
-    case "same-port":
-      addrToHighlight = tableState.table
-        .filter(Boolean)
-        .filter((a) => a.port == addrInfo.port);
-      break;
-    case "same-address":
-      addrToHighlight = tableState.table
-        .filter(Boolean)
-        .filter((a) => a.address == addrInfo.address);
-      break;
-    default:
-  }
+function draw_highlight(addrInfo, state) {
+  for(const [_, tableInfo] of Object.entries(state.tables)) {
+    let addrToHighlight = [];
+    switch (highlightSelect.node().value) {
+      case "same-source":
+        addrToHighlight = tableInfo.table
+          .filter(Boolean)
+          .filter((a) => a.source == addrInfo.source);
+        break;
+      case "same-port":
+        addrToHighlight = tableInfo.table
+          .filter(Boolean)
+          .filter((a) => a.port == addrInfo.port);
+        break;
+      case "same-address":
+        addrToHighlight = tableInfo.table
+          .filter(Boolean)
+          .filter((a) => a.address == addrInfo.address);
+        break;
+      default:
+    }
 
-  if (addrToHighlight.length > 0) {
     for (const addrInfo of addrToHighlight) {
       let [x, y] =
-        tableState.tableAddrPos[
+        tableInfo.positions[
           addrInfo.bucket * NUM_ADDR_PER_BUCKET + addrInfo.position
         ];
-      tableState.contextHighlight.strokeStyle = "black";
-      tableState.contextHighlight.lineWidth = 1;
-      tableState.contextHighlight.strokeRect(x, y, ADDR_PIXEL_SIZE, ADDR_PIXEL_SIZE);
+      state.contextHighlight.strokeStyle = "black";
+      state.contextHighlight.lineWidth = 1;
+      state.contextHighlight.strokeRect(x, y, ADDR_PIXEL_SIZE, ADDR_PIXEL_SIZE);
     }
   }
 }
