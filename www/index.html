@@ -69,16 +69,16 @@
   <label>
     mouse-over highlight
     <select name="highlight" id="highlight">
-      <option value="no-highlight">no highlight</option>
+      <option value="selected">selected</option>
       <option value="same-source">same source</option>
       <option value="same-address">same address</option>
       <option value="same-port">same port</option>
     </select>
   </label>
 
-  <div style="position: relative; display:inline-block;">
-    <canvas id="canvas_highlight"></canvas>
-    <canvas id="canvas"></canvas>
+  <div id="canvas_wrapper" style="position: relative; display: flex;">
+    <canvas style="width: 100%;" id="canvas_highlight"></canvas>
+    <canvas style="width: 100%;" id="canvas"></canvas>
   </div>
 
   <div id="tooltip"></div>

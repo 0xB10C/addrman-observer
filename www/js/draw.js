@@ -13,6 +13,9 @@ const TRIED_BUCKETS_PER_BUCKET_ROW = 16;
 const NEW_HEIGHT = BUCKET_PIXEL_SIZE * NEW_BUCKETS_PER_BUCKET_ROW;
 const TRIED_HEIGHT = BUCKET_PIXEL_SIZE * TRIED_BUCKETS_PER_BUCKET_ROW;
 
+// How far we can translate x and y outside of the addrman tables
+const D3JS_ZOOM_MAX_X_Y_TRANSLATE = 1000;
+
 network_to_color = {
   ipv4: d3.schemeDark2[0],
   ipv6: d3.schemeDark2[1],
@@ -71,7 +74,8 @@ function init_addrman_tables(
     }
   }
 
-  let width = window.innerWidth * 0.9;
+  let border_width = 1 // px;
+  let width = document.getElementById("canvas_wrapper").clientWidth - border_width * 2;
 
   let tree = d3
     .quadtree()
@@ -91,7 +95,7 @@ function init_addrman_tables(
     .style("left", "0")
     .style("top", "0")
     .style("z-layer:", "99")
-    .style("border", "solid 1px gray");
+    .style("border", `solid ${border_width}px gray`);
   var context = canvas.node().getContext("2d");
 
   // A highlight canvas for drawing mouse-over highlights
@@ -99,7 +103,7 @@ function init_addrman_tables(
   canvasHighlight
     .attr("width", width)
     .attr("height", height)
-    .style("border", "solid 1px red");
+    .style("border", `solid ${border_width}px red`);
   var contextHighlight = canvasHighlight.node().getContext("2d");
 
   let state = {
@@ -116,8 +120,8 @@ function init_addrman_tables(
     .zoom()
     .scaleExtent([0.33, 16])
     .translateExtent([
-      [0, 0],
-      [width, height],
+      [-D3JS_ZOOM_MAX_X_Y_TRANSLATE, -D3JS_ZOOM_MAX_X_Y_TRANSLATE],
+      [width+D3JS_ZOOM_MAX_X_Y_TRANSLATE, height+D3JS_ZOOM_MAX_X_Y_TRANSLATE],
     ])
     .on("zoom", ({ transform }) => {
       state.currentZoom = transform;
@@ -144,15 +148,26 @@ function init_addrman_tables(
     addrinfo = tree.find(x - ADDR_PIXEL_SIZE / 2, y - ADDR_PIXEL_SIZE / 2, 2);
     if (addrinfo) {
       tooltip
+        .transition()
+        .duration(10)
         .style("top", e.clientY + 5 + "px")
         .style("left", e.clientX + 5 + "px")
-        .html(formatTooltip(addrinfo));
-      tooltip.transition().delay(100).duration(10).style("opacity", 1);
+        .style("opacity", 1)
+      tooltip.html(formatTooltip(addrinfo));
       draw_background(false, state, addrinfo);
     } else {
-      tooltip.style("opacity", 0);
+      tooltip.transition()
+        .duration(250)
+        .style("opacity", 0);
     }
   });
+
+    // mouse over on the highlight canvas as it sits above the main canvas
+    d3.select(state.context.canvas).on("mouseout", (e) => {
+        tooltip.transition()
+          .duration(10)
+          .style("opacity", 0);
+    });
 
   return state;
 }
@@ -189,6 +204,11 @@ function draw_highlight(addrInfo, state) {
   for(const [_, tableInfo] of Object.entries(state.tables)) {
     let addrToHighlight = [];
     switch (highlightSelect.node().value) {
+      case "selected":
+        addrToHighlight = tableInfo.table
+          .filter(Boolean)
+          .filter((a) => a == addrInfo);
+        break;
       case "same-source":
         addrToHighlight = tableInfo.table
           .filter(Boolean)
