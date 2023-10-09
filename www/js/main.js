@@ -30,6 +30,7 @@ function processGetRawAddrman(addrman) {
 }
 
 function loadFromURL(url) {
+  console.log("loading getrawaddrman from ", url);
   fetch(url)
     .then((res) => res.json())
     .then((getrawaddrman) => {
@@ -57,3 +58,12 @@ document.getElementById('selectFiles').addEventListener('change', function(e) {
     fr.readAsText(files.item(0));
   }
 });
+
+window.onload = (event) => {
+
+  const searchParams = new URLSearchParams(window.location.search);
+  if (searchParams.has("url")) {
+    loadFromURL(searchParams.get("url"));
+  }
+
+};
