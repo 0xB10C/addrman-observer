@@ -161,14 +161,6 @@ function init_addrman_tables(
         .style("opacity", 0);
     }
   });
-
-    // mouse over on the highlight canvas as it sits above the main canvas
-    d3.select(state.context.canvas).on("mouseout", (e) => {
-        tooltip.transition()
-          .duration(10)
-          .style("opacity", 0);
-    });
-
   return state;
 }
 
@@ -180,12 +172,18 @@ function draw_background(is_zoom, state, highlight) {
   state.contextHighlight.scale(transform.k, transform.k);
   state.contextHighlight.beginPath();
 
-  for(const [_, tableInfo] of Object.entries(state.tables)) {
+  for(const [tableName, tableInfo] of Object.entries(state.tables)) {
+
+    let [x, y] = tableInfo.positions[0];
+    state.contextHighlight.fillStyle = "black";
+    state.contextHighlight.font = "14px sans-serif";
+    state.contextHighlight.fillText(`${tableName} table - ${tableInfo.buckets} buckets with ${NUM_ADDR_PER_BUCKET} address slots each`, x, y - 10);
+
     for (bucket = 0; bucket < tableInfo.buckets; bucket++) {
       let [x, y] = tableInfo.positions[bucket * NUM_ADDR_PER_BUCKET];
       state.contextHighlight.fillStyle = "#eee";
       state.contextHighlight.fillRect(x - 0.5, y - 0.5, BUCKET_PIXEL_SIZE - BUCKET_PIXEL_PADDING, BUCKET_PIXEL_SIZE - BUCKET_PIXEL_PADDING);
-      if (is_zoom && transform.k > 4) {
+      if (is_zoom && transform.k > 3) {
         state.contextHighlight.fillStyle = "black";
         state.contextHighlight.font = "2px sans-serif";
         state.contextHighlight.fillText("bucket " + bucket, x, y + 1.5);
