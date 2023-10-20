@@ -16,7 +16,7 @@ const TRIED_HEIGHT = BUCKET_PIXEL_SIZE * TRIED_BUCKETS_PER_BUCKET_ROW;
 // How far we can translate x and y outside of the addrman tables
 const D3JS_ZOOM_MAX_X_Y_TRANSLATE = 1000;
 
-network_to_color = {
+const NETWORK_COLOR = {
   ipv4: d3.schemeDark2[0],
   ipv6: d3.schemeDark2[1],
   tor: d3.schemeDark2[2],
@@ -40,10 +40,11 @@ function calc_addr_x_y(bucket, bucket_pos, buckets_per_bucket_column) {
 }
 
 const highlightSelect = d3.select("#highlight");
+const colorSelect = d3.select("#color");
+const colorLegend = d3.select("#address-color-legend");
 const tooltip = d3.select("#tooltip");
 
 function init_addrman_tables(
-  size,
   height,
   canvasName,
   canvasHighlightName
@@ -114,6 +115,8 @@ function init_addrman_tables(
     currentZoom: d3.zoomIdentity,
     height: height,
     width: width,
+    ageColorScale: null,
+    stats: null,
   };
 
   const zoomContext = d3
@@ -153,14 +156,20 @@ function init_addrman_tables(
         .style("top", e.clientY + 5 + "px")
         .style("left", e.clientX + 5 + "px")
         .style("opacity", 1)
-      tooltip.html(formatTooltip(addrinfo));
+      tooltip.html(formatTooltip(addrinfo, state.stats));
       draw_background(false, state, addrinfo);
     } else {
       tooltip.transition()
-        .duration(250)
+        .duration(10)
         .style("opacity", 0);
     }
   });
+
+  colorSelect.node().addEventListener("change", (_) => {
+    draw(false, state)
+    drawColorLegend(state)
+  });
+
   return state;
 }
 
@@ -238,7 +247,7 @@ function draw_highlight(addrInfo, state) {
 }
 
 function draw(is_zoom, state) {
-  d3.select("#tooltip").style("opacity", 0);
+  tooltip.style("opacity", 0);
   transform = state.currentZoom;
   state.context.save();
   state.context.clearRect(0, 0, state.width, state.height);
@@ -260,7 +269,7 @@ function draw(is_zoom, state) {
             state.context.strokeRect(x, y, ADDR_PIXEL_SIZE, ADDR_PIXEL_SIZE);
           }
         } else {
-          state.context.fillStyle = network_to_color[addrInfo.network];
+          state.context.fillStyle = address_color(addrInfo, state);
           state.context.fillRect(x, y, ADDR_PIXEL_SIZE, ADDR_PIXEL_SIZE); // x, y, width and height
         }
         position++;
@@ -271,17 +280,77 @@ function draw(is_zoom, state) {
   state.context.restore();
 }
 
-function formatTooltip(addrinfo) {
+function formatTooltip(addrinfo, stats) {
   return `
     <table>
-        <tr><td>address</td><td>${addrinfo.address}</td></tr>
-        <tr><td>port</td><td>${addrinfo.port}</td></tr>
-        <tr><td>services</td><td>${addrinfo.services}</td></tr>
-        <tr><td>time</td><td>${addrinfo.time}</td></tr>
-        <tr><td>network</td><td>${addrinfo.network}</td></tr>
-        <tr><td>bucket</td><td>${addrinfo.bucket}</td></tr>
-        <tr><td>position</td><td>${addrinfo.position}</td></tr>
-        <tr><td>source</td><td>${addrinfo.source}</td></tr>
-        <tr><td>source network</td><td>${addrinfo.source_network}</td></tr>
-    </table>`;
+      <tr><td class="text-muted small px-2">address</td><td>${addrinfo.address}</td></tr>
+      <tr><td class="text-muted small px-2">port</td><td>${addrinfo.port}</td></tr>
+      <tr><td class="text-muted small px-2">services</td><td>${addrinfo.services}</td></tr>
+      <tr><td class="text-muted small px-2">time</td><td>${new Date(addrinfo.time*1000).toLocaleString()}</td></tr>
+      <tr><td class="text-muted small px-2">relative age*</td><td>${Math.floor((stats.maxNTime - addrinfo.time)).toDDHHMMSS()}</td></tr>
+      <tr><td class="text-muted small px-2">network</td><td>${addrinfo.network}</td></tr>
+      <tr><td class="text-muted small px-2">bucket</td><td>${addrinfo.bucket}</td></tr>
+      <tr><td class="text-muted small px-2">position</td><td>${addrinfo.position}</td></tr>
+      <tr><td class="text-muted small px-2">source</td><td>${addrinfo.source}</td></tr>
+      <tr><td class="text-muted small px-2">source network</td><td>${addrinfo.source_network}</td></tr>
+    </table>
+    <hr class="m-1">
+    <span class="text-muted small">*age is relative to the newest address<span>`;
+}
+
+function address_color(addrInfo, state) {
+  switch (colorSelect.node().value) {
+    case "network":
+      return NETWORK_COLOR[addrInfo.network];
+    case "age":
+      return state.ageColorScale(addrInfo.time);
+    default:
+      return "#b10c00";
+  }
+}
+
+function drawColorLegend(state) {
+  colorLegend.node().innerHTML = '';
+  switch (colorSelect.node().value) {
+    case "network":
+      colorLegend.html(Object.entries(NETWORK_COLOR).map(([k, v]) => `<span style="color:${v}">■</span> ${k}&nbsp;&nbsp;`).join("  "));
+      break;
+    case "age":
+      let oldest = document.createElement('span');
+      let newest = document.createElement('span');
+      oldest.textContent = "oldest ";
+      newest.textContent = " newest";
+      colorLegend.node().appendChild(oldest)
+      colorLegend.node().appendChild(ramp(state.ageColorScale.interpolator()))
+      colorLegend.node().appendChild(newest)
+      break;
+    default:
+      colorLegend.textContent("not implemented")
+  }
+}
+
+Number.prototype.toDDHHMMSS = function () {
+  let duration = this;
+  let days    = Math.floor(duration / 86400)
+  duration -= days * 86400;
+  let hours   = Math.floor(duration / 3600);
+  duration -= hours * 3600;
+  let minutes = Math.floor(duration / 60);
+  duration -= minutes * 60;
+  let seconds = duration % 60;
+
+  return days+"d " + hours+'h '+minutes+'min '+seconds + "s";
+}
+
+function ramp(color, n = 256) {
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext("2d");
+  canvas.width = n;
+  canvas.height = 16;
+  canvas.style.imageRendering = "pixelated";
+  for (let i = 0; i < n; ++i) {
+    context.fillStyle = color(i / (n - 1));
+    context.fillRect(i, 0, 1, canvas.height);
+  }
+  return canvas;
 }
