@@ -1,5 +1,6 @@
+const statsTable = d3.select("#stats");
+
 let state = init_addrman_tables(
-  0,
   NEW_HEIGHT,
   "#canvas",
   "#canvas_highlight",
@@ -9,11 +10,15 @@ draw(false, state);
 
 function processGetRawAddrman(addrman) {
   state = init_addrman_tables(
-    0,
     NEW_HEIGHT,
     "#canvas",
     "#canvas_highlight",
   );
+
+  stats = {
+    minNTime: +Infinity,
+    maxNTime: -Infinity,
+  }
 
   for (const table_name of ["new", "tried"]) {
     for (const bucket_position in addrman[table_name]) {
@@ -23,9 +28,14 @@ function processGetRawAddrman(addrman) {
       entry["table"] = table_name;
       state.tables[table_name].table[entry.bucket * 64 + entry.position] = entry;
       state.tree.add(entry);
+      stats.maxNTime = Math.max(stats.maxNTime, entry.time)
+      stats.minNTime = Math.min(stats.minNTime, entry.time)
     }
   }
-
+  state.stats = stats;
+  state.ageColorScale = d3.scaleSequential([stats.minNTime, stats.maxNTime], d3.interpolateRdYlGn);
+  statsTable.html(formatStats(state.stats))
+  drawColorLegend(state)
   draw(false, state);
 }
 
@@ -67,3 +77,21 @@ window.onload = (event) => {
   }
 
 };
+
+function formatStats(stats) {
+  return `
+  <div class="row row-cols-2">
+    <div class="col">
+      <span class="row">
+        <span class="text-muted small col">oldest address</span>
+        <span class="col-auto">${new Date(stats.minNTime * 1000).toLocaleString()} (${stats.minNTime})</span>
+      </span>
+    </div>
+    <div class="col">
+      <span class="row">
+        <span class="text-muted small col">newest address</span>
+        <span class="col-auto">${new Date(stats.maxNTime * 1000).toLocaleString()} (${stats.maxNTime})</span>
+      </span>
+    </div>
+  </div>`;
+}

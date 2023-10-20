@@ -31,10 +31,11 @@
     </div>
   </nav>
 
-  <div class="card">
+  <div class="card my-2">
+    <div class="card-header">
+      Load addrman data
+    </div>
     <div class="card-body">
-      Load addrman JSON data
-
       <div class="container text-center">
         <div class="row row-cols-1 row-cols-md-3">
           <div class="col my-2">
@@ -64,21 +65,52 @@
     </div>
   </div>
 
-  <br />
-  <br>
-  <label>
-    mouse-over highlight
-    <select name="highlight" id="highlight">
-      <option value="selected">selected</option>
-      <option value="same-source">same source</option>
-      <option value="same-address">same address</option>
-      <option value="same-port">same port</option>
-    </select>
-  </label>
+  <div class="card my-2">
+    <div class="card-header">
+      Visualization
+    </div>
+    <div class="card-body">
 
-  <div id="canvas_wrapper" style="position: relative; display: flex;">
-    <canvas style="width: 100%;" id="canvas_highlight"></canvas>
-    <canvas style="width: 100%;" id="canvas"></canvas>
+      <div class="row row-cols-1 row-cols-md-2">
+        <div class="col">
+          <span class="row">
+            <span class="col">mouse-over highlight</span>
+            <span class="col-auto">
+              <select name="highlight" id="highlight">
+                <option value="selected">selected</option>
+                <option value="same-source">same source</option>
+                <option value="same-address">same address</option>
+                <option value="same-port">same port</option>
+              </select>
+            </span>
+          </span>
+        </div>
+        <div class="col">
+          <span class="row">
+            <span class="col">address color</span>
+            <span class="col-auto">
+              <span id="address-color-legend"></span>
+              <select name="color" id="color">
+                <option value="network">by network</option>
+                <option value="age">by age</option>
+              </select>
+            </span>
+          </span>
+        </div>
+      </div>
+      <div id="canvas_wrapper" style="position: relative; display: flex;">
+        <canvas style="width: 100%;" id="canvas_highlight"></canvas>
+        <canvas style="width: 100%;" id="canvas"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="card my-2">
+    <div class="card-header">
+      Statistics
+    </div>
+    <div class="card-body">
+      <div id="stats"></div>
+    </div>
   </div>
 
   <div id="tooltip"></div>
