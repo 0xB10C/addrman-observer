@@ -25,12 +25,13 @@ struct TomlConfig {
 pub struct Config {
     pub www_path: PathBuf,
     pub address: SocketAddr,
-    pub nodes: BTreeMap<u16, Node>,
+    pub nodes: BTreeMap<String, Node>,
 }
 
 #[derive(Debug, Deserialize)]
 struct TomlNode {
     id: u16,
+    name: String,
     rpc_host: String,
     rpc_port: u16,
     rpc_cookie_file: Option<PathBuf>,
@@ -41,8 +42,9 @@ struct TomlNode {
 impl fmt::Display for TomlNode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
-            f,"Node (id={}, rpc_host='{}', rpc_port={}, rpc_user='{}', rpc_password='***', rpc_cookie_file={:?})",
+            f,"Node (id={}, name={}, rpc_host='{}', rpc_port={}, rpc_user='{}', rpc_password='***', rpc_cookie_file={:?})",
             self.id,
+            self.name,
             self.rpc_host,
             self.rpc_port,
             self.rpc_user.as_ref().unwrap_or(&"".to_string()),
@@ -54,6 +56,7 @@ impl fmt::Display for TomlNode {
 #[derive(Clone)]
 pub struct Node {
     pub id: u16,
+    pub name: String,
     pub url: String,
     pub auth: Auth,
 }
@@ -82,12 +85,14 @@ pub fn load_config() -> Result<Config, ConfigError> {
     let config_string = fs::read_to_string(config_file_path)?;
     let toml_config: TomlConfig = toml::from_str(&config_string)?;
 
-    let mut nodes: BTreeMap<u16, Node> = BTreeMap::new();
+    let mut nodes: BTreeMap<String, Node> = BTreeMap::new();
     for toml_node in toml_config.nodes.iter() {
         match parse_toml_node(toml_node) {
             Ok(node) => {
                 let id = node.id;
-                nodes.insert(id, node);
+                let name = node.name.clone();
+                nodes.insert(id.to_string(), node.clone());
+                nodes.insert(name, node);
             }
             Err(e) => {
                 error!("Error while parsing a node configuration: {}", toml_node);
@@ -110,6 +115,7 @@ pub fn load_config() -> Result<Config, ConfigError> {
 fn parse_toml_node(toml_node: &TomlNode) -> Result<Node, ConfigError> {
     let node = Node {
         id: toml_node.id,
+        name: toml_node.name.clone(),
         auth: parse_rpc_auth(toml_node)?,
         url: format!("{}:{}", toml_node.rpc_host, toml_node.rpc_port),
     };
