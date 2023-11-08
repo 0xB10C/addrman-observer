@@ -6,6 +6,7 @@ www_path = "../www"
 [[nodes]]
 
 id = 0
+name = "test"
 rpc_host = "127.0.0.1"
 rpc_port = 38332
 rpc_cookie_file = "/home/b10c/.bitcoin/signet/.cookie"

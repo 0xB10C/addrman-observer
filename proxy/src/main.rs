@@ -61,21 +61,30 @@ async fn main() {
         }
     };
 
-    let proxy = warp::path!(u16).map(move |id: u16| match config.nodes.get(&id) {
-        Some(node) => proxy_getrawaddrman(&node),
-        None => {
-            error!("The node with id={} was requested but not found.", id);
-            return reply::with_status(String::from("NOT_FOUND"), StatusCode::NOT_FOUND);
-        }
-    });
+    let address = config.address.clone();
+    let www_path = config.www_path.clone();
+
+    let proxy =
+        warp::path!(String).map(
+            move |id_or_name: String| match config.nodes.get(&id_or_name) {
+                Some(node) => proxy_getrawaddrman(&node),
+                None => {
+                    error!(
+                        "The node with id_or_name='{}' was requested but not found.",
+                        id_or_name
+                    );
+                    return reply::with_status(String::from("NOT_FOUND"), StatusCode::NOT_FOUND);
+                }
+            },
+        );
 
     let proxy_route = proxy
         .map(|reply| warp::reply::with_header(reply, "Access-Control-Allow-Origin", "*"))
         .with(warp::compression::gzip());
 
-    let static_route = warp::fs::dir(config.www_path);
+    let static_route = warp::fs::dir(www_path);
 
     let route = static_route.or(proxy_route);
 
-    warp::serve(route).run(config.address).await;
+    warp::serve(route).run(address).await;
 }
