@@ -2,6 +2,8 @@ use std::fmt;
 use std::net::AddrParseError;
 use std::{error, io};
 
+use crate::config::MAX_NAME_LENGTH;
+
 #[derive(Debug)]
 pub enum FetchError {
     BitcoinCoreRPC(bitcoincore_rpc::Error),
@@ -34,6 +36,7 @@ pub enum ConfigError {
     CookieFileDoesNotExist,
     NoBitcoinCoreRpcAuth,
     NoNodes,
+    NodeNameTooLong,
     TomlError(toml::de::Error),
     ReadError(io::Error),
     AddrError(AddrParseError),
@@ -44,7 +47,8 @@ impl fmt::Display for ConfigError {
         match self {
             ConfigError::CookieFileDoesNotExist => write!(f, "the .cookie file path set via rpc_cookie_file does not exist"),
             ConfigError::NoBitcoinCoreRpcAuth => write!(f, "please specify a Bitcoin Core RPC .cookie file (option: 'rpc_cookie_file') or a rpc_user and rpc_password"),
-            ConfigError::NoNodes => write!(f, "no networks defined in the configuration"),
+            ConfigError::NoNodes => write!(f, "no nodes defined in the configuration"),
+            ConfigError::NodeNameTooLong => write!(f, "node name longer than {}", MAX_NAME_LENGTH),
             ConfigError::TomlError(e) => write!(f, "the TOML in the configuration file could not be parsed: {}", e),
             ConfigError::ReadError(e) => write!(f, "the configuration file could not be read: {}", e),
             ConfigError::AddrError(e) => write!(f, "the address could not be parsed: {}", e),
@@ -58,6 +62,7 @@ impl error::Error for ConfigError {
             ConfigError::NoBitcoinCoreRpcAuth => None,
             ConfigError::CookieFileDoesNotExist => None,
             ConfigError::NoNodes => None,
+            ConfigError::NodeNameTooLong => None,
             ConfigError::TomlError(ref e) => Some(e),
             ConfigError::ReadError(ref e) => Some(e),
             ConfigError::AddrError(ref e) => Some(e),

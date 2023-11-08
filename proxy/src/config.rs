@@ -13,6 +13,7 @@ use crate::error::ConfigError;
 
 const ENVVAR_CONFIG_FILE: &str = "CONFIG_FILE";
 const DEFAULT_CONFIG: &str = "config.toml";
+pub const MAX_NAME_LENGTH: usize = 32;
 
 #[derive(Deserialize)]
 struct TomlConfig {
@@ -91,6 +92,13 @@ pub fn load_config() -> Result<Config, ConfigError> {
             Ok(node) => {
                 let id = node.id;
                 let name = node.name.clone();
+                if name.len() > MAX_NAME_LENGTH {
+                    error!(
+                        "The node with id={} has a name longer {}.",
+                        id, MAX_NAME_LENGTH
+                    );
+                    return Err(ConfigError::NodeNameTooLong);
+                }
                 nodes.insert(id.to_string(), node.clone());
                 nodes.insert(name, node);
             }
