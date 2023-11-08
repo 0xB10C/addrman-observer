@@ -64,19 +64,25 @@ async fn main() {
     let address = config.address.clone();
     let www_path = config.www_path.clone();
 
-    let proxy =
-        warp::path!(String).map(
-            move |id_or_name: String| match config.nodes.get(&id_or_name) {
-                Some(node) => proxy_getrawaddrman(&node),
-                None => {
-                    error!(
-                        "The node with id_or_name='{}' was requested but not found.",
-                        id_or_name
-                    );
-                    return reply::with_status(String::from("NOT_FOUND"), StatusCode::NOT_FOUND);
-                }
-            },
-        );
+    let proxy = warp::path!(String).map(move |id_or_name: String| {
+        if id_or_name.len() > config::MAX_NAME_LENGTH {
+            error!(
+                "A id_or_name with a length of {} was passed while the limit is {} - returning NOT FOUND.",
+                id_or_name.len(), config::MAX_NAME_LENGTH
+            );
+            return reply::with_status(String::from("NOT_FOUND"), StatusCode::NOT_FOUND);
+        }
+        match config.nodes.get(&id_or_name) {
+            Some(node) => proxy_getrawaddrman(&node),
+            None => {
+                error!(
+                    "The node with id_or_name='{}' was requested but not found.",
+                    id_or_name
+                );
+                return reply::with_status(String::from("NOT_FOUND"), StatusCode::NOT_FOUND);
+            }
+        }
+    });
 
     let proxy_route = proxy
         .map(|reply| warp::reply::with_header(reply, "Access-Control-Allow-Origin", "*"))
