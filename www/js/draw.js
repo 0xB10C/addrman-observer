@@ -19,7 +19,7 @@ const D3JS_ZOOM_MAX_X_Y_TRANSLATE = 1000;
 const NETWORK_COLOR = {
   ipv4: d3.schemeDark2[0],
   ipv6: d3.schemeDark2[1],
-  tor: d3.schemeDark2[2],
+  onion: d3.schemeDark2[2],
   i2p: d3.schemeDark2[3],
   interal: d3.schemeDark2[4],
   unknown: d3.schemeDark2[5],
