@@ -21,7 +21,8 @@ const NETWORK_COLOR = {
   ipv6: d3.schemeDark2[1],
   onion: d3.schemeDark2[2],
   i2p: d3.schemeDark2[3],
-  interal: d3.schemeDark2[4],
+  internal: d3.schemeDark2[4],
+  not_publicly_routable: d3.schemeDark2[4],
   unknown: d3.schemeDark2[5],
 };
 
@@ -302,6 +303,8 @@ function address_color(addrInfo, state) {
   switch (colorSelect.node().value) {
     case "network":
       return NETWORK_COLOR[addrInfo.network];
+    case "source_network":
+      return NETWORK_COLOR[addrInfo.source_network];
     case "age":
       return state.ageColorScale(addrInfo.time);
     default:
@@ -313,7 +316,12 @@ function drawColorLegend(state) {
   colorLegend.node().innerHTML = '';
   switch (colorSelect.node().value) {
     case "network":
-      colorLegend.html(Object.entries(NETWORK_COLOR).map(([k, v]) => `<span style="color:${v}">■</span> ${k}&nbsp;&nbsp;`).join("  "));
+      let possible_networks = Array.from(new Set(state.tables.new.table.filter(Boolean).map(a => a.network).concat(state.tables.tried.table.filter(Boolean).map(a => a.network))))
+      colorLegend.html(possible_networks.map((k) => `<span style="color:${NETWORK_COLOR[k]}">■</span> ${k}&nbsp;&nbsp;`).join("  "));
+      break;
+    case "source_network":
+      let possible_source_networks = Array.from(new Set(state.tables.new.table.filter(Boolean).map(a => a.source_network).concat(state.tables.tried.table.filter(Boolean).map(a => a.source_network))))
+      colorLegend.html(possible_source_networks.map((k) => `<span style="color:${NETWORK_COLOR[k]}">■</span> ${k}&nbsp;&nbsp;`).join("  "));
       break;
     case "age":
       let oldest = document.createElement('span');
@@ -325,6 +333,7 @@ function drawColorLegend(state) {
       colorLegend.node().appendChild(newest)
       break;
     default:
+      alert("not implemented")
       colorLegend.textContent("not implemented")
   }
 }
