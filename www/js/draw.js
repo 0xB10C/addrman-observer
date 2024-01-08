@@ -232,6 +232,11 @@ function draw_highlight(addrInfo, state) {
           .filter(Boolean)
           .filter((a) => a.address == addrInfo.address);
         break;
+      case "same-services":
+        addrToHighlight = tableInfo.table
+          .filter(Boolean)
+          .filter((a) => a.services == addrInfo.services);
+        break;
       default:
     }
 
