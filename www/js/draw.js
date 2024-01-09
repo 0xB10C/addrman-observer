@@ -26,6 +26,28 @@ const NETWORK_COLOR = {
   unknown: d3.schemeDark2[5],
 };
 
+// defines colors for frequently used services. This is set in the colorSelect
+// EventListener
+let SERVICE_COLORS = {};
+
+SERVICE_NODE_NETWORK = 1 << 0
+SERVICE_NODE_BLOOM = 1 << 2
+SERVICE_NODE_WITNESS = 1 << 3
+SERVICE_NODE_COMPACT_FILTERS = 1 << 6
+SERVICE_NODE_NETWORK_LIMITED = 1 << 10
+SERVICE_NODE_P2P_V2 = 1 << 11
+SERVICE_TEMP_FULL_RBF = 1 << 26
+
+const SERVICES_NAME = {
+  1: "NETWORK",
+  4: "BLOOM",
+  8: "WITNESS",
+  64: "COMPACT_FILTERS",
+  1024: "NETWORK_LIMITED",
+  2048: "P2P_V2",
+  67108864: "FULL_RBF",
+}
+
 function calc_addr_x_y(bucket, bucket_pos, buckets_per_bucket_column) {
   let bucket_x = (bucket % buckets_per_bucket_column) * BUCKET_PIXEL_SIZE;
   let bucket_pos_x =
@@ -167,8 +189,8 @@ function init_addrman_tables(
   });
 
   colorSelect.node().addEventListener("change", (_) => {
-    draw(false, state)
     drawColorLegend(state)
+    draw(false, state)
   });
 
   return state;
@@ -291,7 +313,7 @@ function formatTooltip(addrinfo, stats) {
     <table>
       <tr><td class="text-muted small px-2">address</td><td>${addrinfo.address}</td></tr>
       <tr><td class="text-muted small px-2">port</td><td>${addrinfo.port}</td></tr>
-      <tr><td class="text-muted small px-2">services</td><td>${addrinfo.services}</td></tr>
+      <tr><td class="text-muted small px-2">services</td><td>${addrinfo.services} (${services_names(addrinfo.services)})</td></tr>
       <tr><td class="text-muted small px-2">time</td><td>${new Date(addrinfo.time*1000).toLocaleString()}</td></tr>
       <tr><td class="text-muted small px-2">relative age*</td><td>${Math.floor((stats.maxNTime - addrinfo.time)).toDDHHMMSS()}</td></tr>
       <tr><td class="text-muted small px-2">network</td><td>${addrinfo.network}</td></tr>
@@ -304,12 +326,24 @@ function formatTooltip(addrinfo, stats) {
     <span class="text-muted small">*age is relative to the newest address<span>`;
 }
 
+function services_names(services) {
+  let service_names = []
+  for (const service of Object.keys(SERVICES_NAME)) {
+    if (services & service) {
+      service_names.push(SERVICES_NAME[service])
+    }
+  }
+  return service_names.join(", ")
+}
+
 function address_color(addrInfo, state) {
   switch (colorSelect.node().value) {
     case "network":
       return NETWORK_COLOR[addrInfo.network];
     case "source_network":
       return NETWORK_COLOR[addrInfo.source_network];
+    case "services":
+      return SERVICE_COLORS.hasOwnProperty(addrInfo.services)? SERVICE_COLORS[addrInfo.services]: d3.schemeTableau10[9];
     case "age":
       return state.ageColorScale(addrInfo.time);
     default:
@@ -327,6 +361,26 @@ function drawColorLegend(state) {
     case "source_network":
       let possible_source_networks = Array.from(new Set(state.tables.new.table.filter(Boolean).map(a => a.source_network).concat(state.tables.tried.table.filter(Boolean).map(a => a.source_network))))
       colorLegend.html(possible_source_networks.map((k) => `<span style="color:${NETWORK_COLOR[k]}">■</span> ${k}&nbsp;&nbsp;`).join("  "));
+      break;
+    case "services":
+      // Object with service flag counts (e.g. {1033: 630, 1036: 5, 1037: 156, ..})
+      let flagCounts = tableInfo.table.filter(Boolean).reduce(function (acc, curr) {
+        return acc[curr.services] ? ++acc[curr.services] : acc[curr.services] = 1, acc
+      }, {})
+      let sortedFlags = Object.keys(flagCounts).map(k => ([k, flagCounts[k]])).sort((a, b) => (b[1] - a[1]));
+      // take up to 9 of most used service flags. We are limited to 9 here as
+      // the color map doesn't have more colors
+      let flagsToShow = sortedFlags.slice(0, Math.min(9, sortedFlags.length))
+      flagsToShow.map((e, i) =>
+        SERVICE_COLORS[e[0]] = d3.schemeTableau10[i]
+      )
+      console.log(flagsToShow)
+
+      colorLegend.html(
+        Object.keys(SERVICE_COLORS).map((services) =>
+            `<span style="color:${SERVICE_COLORS[services]}">■</span> ${services}&nbsp;&nbsp;`
+        ).concat(`<span style="color: ${d3.schemeTableau10[9]}">■</span> other&nbsp;&nbsp;`).join("  ")
+      );
       break;
     case "age":
       let oldest = document.createElement('span');
