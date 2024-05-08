@@ -244,6 +244,18 @@ function draw_highlight(addrInfo, state) {
           .filter(Boolean)
           .filter((a) => a.source == addrInfo.source);
         break;
+      case "same-as":
+        addrToHighlight = tableInfo.table
+          .filter(Boolean)
+          .filter((a) => ('mapped_as' in addrInfo))
+          .filter((a) => a.mapped_as == addrInfo.mapped_as);
+        break;
+      case "same-source-as":
+        addrToHighlight = tableInfo.table
+          .filter(Boolean)
+          .filter((a) => ('source_mapped_as' in addrInfo))
+          .filter((a) => a.source_mapped_as == addrInfo.source_mapped_as);
+        break;
       case "same-port":
         addrToHighlight = tableInfo.table
           .filter(Boolean)
@@ -321,6 +333,8 @@ function formatTooltip(addrinfo, stats) {
       <tr><td class="text-muted small px-2">position</td><td>${addrinfo.position}</td></tr>
       <tr><td class="text-muted small px-2">source</td><td>${addrinfo.source}</td></tr>
       <tr><td class="text-muted small px-2">source network</td><td>${addrinfo.source_network}</td></tr>
+      <tr><td class="text-muted small px-2">mapped AS</td><td>${ ("mapped_as" in addrinfo) ? addrinfo.mapped_as : "-" }</td></tr>
+      <tr><td class="text-muted small px-2">mapped source AS</td><td>${ ("source_mapped_as" in addrinfo) ? addrinfo.source_mapped_as : "-"}</td></tr>
     </table>
     <hr class="m-1">
     <span class="text-muted small">*age is relative to the newest address<span>`;
