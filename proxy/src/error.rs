@@ -5,33 +5,6 @@ use std::{error, io};
 use crate::config::MAX_NAME_LENGTH;
 
 #[derive(Debug)]
-pub enum FetchError {
-    BitcoinCoreRPC(bitcoincore_rpc::Error),
-}
-
-impl fmt::Display for FetchError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            FetchError::BitcoinCoreRPC(e) => write!(f, "Bitcoin Core RPC Error: {}", e),
-        }
-    }
-}
-
-impl error::Error for FetchError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match *self {
-            FetchError::BitcoinCoreRPC(ref e) => Some(e),
-        }
-    }
-}
-
-impl From<bitcoincore_rpc::Error> for FetchError {
-    fn from(e: bitcoincore_rpc::Error) -> Self {
-        FetchError::BitcoinCoreRPC(e)
-    }
-}
-
-#[derive(Debug)]
 pub enum ConfigError {
     CookieFileDoesNotExist,
     NoBitcoinCoreRpcAuth,
