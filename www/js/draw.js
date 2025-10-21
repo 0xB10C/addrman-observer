@@ -358,6 +358,8 @@ function address_color(addrInfo, state) {
       return NETWORK_COLOR[addrInfo.source_network];
     case "services":
       return SERVICE_COLORS.hasOwnProperty(addrInfo.services)? SERVICE_COLORS[addrInfo.services]: d3.schemeTableau10[9];
+    case "all-service-bits":
+      return addrInfo.services >= 0xFFFF0000 ? "red" : "white";
     case "age":
       return state.ageColorScale(addrInfo.time);
     default:
@@ -404,6 +406,8 @@ function drawColorLegend(state) {
       colorLegend.node().appendChild(oldest)
       colorLegend.node().appendChild(ramp(state.ageColorScale.interpolator()))
       colorLegend.node().appendChild(newest)
+      break;
+    case "all-service-bits":
       break;
     default:
       alert("not implemented")
