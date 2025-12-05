@@ -105,11 +105,13 @@ downloadBtn.addEventListener("click", () => {
     return;
   }
 
-  const dataStr = JSON.stringify({
-    new: state.tables.new.table,
-    tried: state.tables.tried.table
-  }, null, 2); // pretty print
+  // Convert sparse arrays to dense arrays, keeping only actual entries
+  const cleanData = {
+    new: state.tables.new.table.filter(item => item !== null && item !== undefined),
+    tried: state.tables.tried.table.filter(item => item !== null && item !== undefined),
+  };
 
+  const dataStr = JSON.stringify(cleanData, null, 2);
   const blob = new Blob([dataStr], { type: "application/json" });
   const url = URL.createObjectURL(blob);
 
