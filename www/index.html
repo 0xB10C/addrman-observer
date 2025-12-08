@@ -24,7 +24,8 @@
   <nav class="navbar bg-body-tertiary">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">
-        <img src="https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo.svg" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+        <img src="https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo.svg" alt="Logo" width="30" height="24"
+          class="d-inline-block align-text-top">
         addrman-observer
       </a>
       <a href="https://github.com/0xB10C/addrman-observer">source on GitHub</a>
@@ -55,13 +56,20 @@
                 <div>
                   mainnet IPv4 and IPv6 sample addrman (14MB)
                 </div>
-                <button class="btn btn-outline-primary" onclick="loadFromURL('https://gist.githubusercontent.com/0xB10C/41aad0f94229172ee799e0948047266e/raw/d46f58f52c16b93857f8e72cba704cfc9f866d9d/mainnet.json')">load</button>
+                <button class="btn btn-outline-primary"
+                  onclick="loadFromURL('https://gist.githubusercontent.com/0xB10C/41aad0f94229172ee799e0948047266e/raw/d46f58f52c16b93857f8e72cba704cfc9f866d9d/mainnet.json')">load</button>
               </li>
             </ol>
           </div>
         </div>
-      </div>
 
+        <!-- New row for Download JSON button -->
+        <div class="row my-2">
+          <div class="col text-center">
+            <button class="btn btn-outline-success" id="download-json-btn">Download JSON</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

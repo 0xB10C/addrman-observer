@@ -56,7 +56,7 @@ document.getElementById("load-url").onclick = function () {
   loadFromURL(url);
 };
 
-document.getElementById('selectFiles').addEventListener('change', function(e) {
+document.getElementById('selectFiles').addEventListener('change', function (e) {
   if (e.target.files[0]) {
     var fr = new FileReader();
     fr.onload = function (e) {
@@ -95,3 +95,30 @@ function formatStats(stats) {
     </div>
   </div>`;
 }
+
+// Download JSON button
+const downloadBtn = document.getElementById("download-json-btn");
+
+downloadBtn.addEventListener("click", () => {
+  if (!state || !state.tables) {
+    alert("No addrman data loaded yet!");
+    return;
+  }
+
+  // Convert sparse arrays to dense arrays, keeping only actual entries
+  const cleanData = {
+    new: state.tables.new.table.filter(item => item !== null && item !== undefined),
+    tried: state.tables.tried.table.filter(item => item !== null && item !== undefined),
+  };
+
+  const dataStr = JSON.stringify(cleanData, null, 2);
+  const blob = new Blob([dataStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "getrawaddrman.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+});
