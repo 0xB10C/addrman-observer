@@ -125,7 +125,7 @@ fn parse_toml_node(toml_node: &TomlNode) -> Result<Node, ConfigError> {
         id: toml_node.id,
         name: toml_node.name.clone(),
         auth: parse_rpc_auth(toml_node)?,
-        url: format!("{}:{}", toml_node.rpc_host, toml_node.rpc_port),
+        url: format!("http://{}:{}", toml_node.rpc_host, toml_node.rpc_port),
     };
 
     Ok(node)
