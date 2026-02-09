@@ -1,7 +1,6 @@
 #![cfg_attr(feature = "strict", deny(warnings))]
 
-use bitcoincore_rpc::Client;
-use bitcoincore_rpc::RpcApi;
+use corepc_client::client_sync::v30::Client;
 use env_logger::Env;
 use log::{error, info};
 use std::process;
@@ -12,7 +11,7 @@ mod config;
 mod error;
 
 fn proxy_getrawaddrman(node: &config::Node) -> WithStatus<String> {
-    let rpc = match Client::new(&node.url.clone(), node.auth.clone()) {
+    let rpc = match Client::new_with_auth(&node.url, node.auth.clone()) {
         Ok(c) => c,
         Err(e) => {
             error!(
