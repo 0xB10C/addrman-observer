@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 use std::{env, fmt, fs};
 
-use bitcoincore_rpc::Auth;
+use corepc_client::client_sync::Auth;
 use log::{error, info};
 use serde::Deserialize;
 
