@@ -15,6 +15,12 @@ pub enum ConfigError {
     AddrError(AddrParseError),
 }
 
+impl PartialEq for ConfigError {
+    fn eq(&self, other: &Self) -> bool {
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}
+
 impl fmt::Display for ConfigError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
