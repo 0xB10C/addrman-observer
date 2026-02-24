@@ -10,9 +10,17 @@ pub enum ConfigError {
     NoBitcoinCoreRpcAuth,
     NoNodes,
     NodeNameTooLong,
+    DuplicateNodeName(String),
+    DuplicateNodeId(u16),
     TomlError(toml::de::Error),
     ReadError(io::Error),
     AddrError(AddrParseError),
+}
+
+impl PartialEq for ConfigError {
+    fn eq(&self, other: &Self) -> bool {
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
 }
 
 impl fmt::Display for ConfigError {
@@ -22,6 +30,8 @@ impl fmt::Display for ConfigError {
             ConfigError::NoBitcoinCoreRpcAuth => write!(f, "please specify a Bitcoin Core RPC .cookie file (option: 'rpc_cookie_file') or a rpc_user and rpc_password"),
             ConfigError::NoNodes => write!(f, "no nodes defined in the configuration"),
             ConfigError::NodeNameTooLong => write!(f, "node name longer than {}", MAX_NAME_LENGTH),
+            ConfigError::DuplicateNodeName(name) => write!(f, "duplicate node name '{}'", name),
+            ConfigError::DuplicateNodeId(id) => write!(f, "duplicate node id {}", id),
             ConfigError::TomlError(e) => write!(f, "the TOML in the configuration file could not be parsed: {}", e),
             ConfigError::ReadError(e) => write!(f, "the configuration file could not be read: {}", e),
             ConfigError::AddrError(e) => write!(f, "the address could not be parsed: {}", e),
@@ -36,6 +46,8 @@ impl error::Error for ConfigError {
             ConfigError::CookieFileDoesNotExist => None,
             ConfigError::NoNodes => None,
             ConfigError::NodeNameTooLong => None,
+            ConfigError::DuplicateNodeName(_) => None,
+            ConfigError::DuplicateNodeId(_) => None,
             ConfigError::TomlError(ref e) => Some(e),
             ConfigError::ReadError(ref e) => Some(e),
             ConfigError::AddrError(ref e) => Some(e),

@@ -99,7 +99,16 @@ pub fn load_config() -> Result<Config, ConfigError> {
                     );
                     return Err(ConfigError::NodeNameTooLong);
                 }
-                nodes.insert(id.to_string(), node.clone());
+                let id_key = id.to_string();
+                if nodes.contains_key(&id_key) {
+                    error!("Duplicate node id={}.", id);
+                    return Err(ConfigError::DuplicateNodeId(id));
+                }
+                if nodes.contains_key(&name) {
+                    error!("Duplicate node name='{}'.", name);
+                    return Err(ConfigError::DuplicateNodeName(name));
+                }
+                nodes.insert(id_key, node.clone());
                 nodes.insert(name, node);
             }
             Err(e) => {
