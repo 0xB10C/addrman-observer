@@ -15,14 +15,14 @@ function processGetRawAddrman(addrman) {
     "#canvas_highlight",
   );
 
-  stats = {
+  let stats = {
     minNTime: +Infinity,
     maxNTime: -Infinity,
   }
 
   for (const table_name of ["new", "tried"]) {
     for (const bucket_position in addrman[table_name]) {
-      entry = addrman[table_name][bucket_position];
+      let entry = addrman[table_name][bucket_position];
       entry["bucket"] = parseInt(bucket_position.split("/")[0]);
       entry["position"] = parseInt(bucket_position.split("/")[1]);
       entry["table"] = table_name;
