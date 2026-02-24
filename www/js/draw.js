@@ -21,22 +21,23 @@ const NETWORK_COLOR = {
   ipv6: d3.schemeDark2[1],
   onion: d3.schemeDark2[2],
   i2p: d3.schemeDark2[3],
+  cjdns: d3.schemeDark2[5],
   internal: d3.schemeDark2[4],
   not_publicly_routable: d3.schemeDark2[4],
-  unknown: d3.schemeDark2[5],
+  unknown: d3.schemeDark2[6],
 };
 
 // defines colors for frequently used services. This is set in the colorSelect
 // EventListener
 let SERVICE_COLORS = {};
 
-SERVICE_NODE_NETWORK = 1 << 0
-SERVICE_NODE_BLOOM = 1 << 2
-SERVICE_NODE_WITNESS = 1 << 3
-SERVICE_NODE_COMPACT_FILTERS = 1 << 6
-SERVICE_NODE_NETWORK_LIMITED = 1 << 10
-SERVICE_NODE_P2P_V2 = 1 << 11
-SERVICE_TEMP_FULL_RBF = 1 << 26
+const SERVICE_NODE_NETWORK = 1 << 0
+const SERVICE_NODE_BLOOM = 1 << 2
+const SERVICE_NODE_WITNESS = 1 << 3
+const SERVICE_NODE_COMPACT_FILTERS = 1 << 6
+const SERVICE_NODE_NETWORK_LIMITED = 1 << 10
+const SERVICE_NODE_P2P_V2 = 1 << 11
+const SERVICE_TEMP_FULL_RBF = 1 << 26
 
 const SERVICES_NAME = {
   1: "NETWORK",
@@ -89,7 +90,7 @@ function init_addrman_tables(
     },
   };
 
-  for([_, tableInfo] of Object.entries(tables)) {
+  for(const [_, tableInfo] of Object.entries(tables)) {
     for (const i of tableInfo.table.keys()) {
       let bucket = Math.floor(i / NUM_ADDR_PER_BUCKET);
       let position = i % NUM_ADDR_PER_BUCKET;
@@ -162,16 +163,16 @@ function init_addrman_tables(
 
   // mouse over on the highlight canvas as it sits above the main canvas
   d3.select(state.context.canvas).on("mousemove", (e) => {
-    x =
+    let x =
       (e.clientX -
         e.target.getBoundingClientRect().left -
         state.currentZoom.x) /
       state.currentZoom.k;
-    y =
+    let y =
       (e.clientY - e.target.getBoundingClientRect().top - state.currentZoom.y) /
       state.currentZoom.k;
 
-    addrinfo = tree.find(x - ADDR_PIXEL_SIZE / 2, y - ADDR_PIXEL_SIZE / 2, 2);
+    let addrinfo = tree.find(x - ADDR_PIXEL_SIZE / 2, y - ADDR_PIXEL_SIZE / 2, 2);
     if (addrinfo) {
       tooltip
         .transition()
@@ -188,7 +189,7 @@ function init_addrman_tables(
     }
   });
 
-  colorSelect.node().addEventListener("change", (_) => {
+  colorSelect.on("change", (_) => {
     drawColorLegend(state)
     draw(false, state)
   });
@@ -197,7 +198,7 @@ function init_addrman_tables(
 }
 
 function draw_background(is_zoom, state, highlight) {
-  transform = state.currentZoom;
+  let transform = state.currentZoom;
   state.contextHighlight.save();
   state.contextHighlight.clearRect(0,0, state.width, state.height);
   state.contextHighlight.translate(transform.x, transform.y);
@@ -211,7 +212,7 @@ function draw_background(is_zoom, state, highlight) {
     state.contextHighlight.font = "14px sans-serif";
     state.contextHighlight.fillText(`${tableName} table - ${tableInfo.buckets} buckets with ${NUM_ADDR_PER_BUCKET} address slots each`, x, y - 10);
 
-    for (bucket = 0; bucket < tableInfo.buckets; bucket++) {
+    for (let bucket = 0; bucket < tableInfo.buckets; bucket++) {
       let [x, y] = tableInfo.positions[bucket * NUM_ADDR_PER_BUCKET];
       state.contextHighlight.fillStyle = "#eee";
       state.contextHighlight.fillRect(x - 0.5, y - 0.5, BUCKET_PIXEL_SIZE - BUCKET_PIXEL_PADDING, BUCKET_PIXEL_SIZE - BUCKET_PIXEL_PADDING);
@@ -245,16 +246,18 @@ function draw_highlight(addrInfo, state) {
           .filter((a) => a.source == addrInfo.source);
         break;
       case "same-as":
-        addrToHighlight = tableInfo.table
-          .filter(Boolean)
-          .filter((a) => ('mapped_as' in addrInfo))
-          .filter((a) => a.mapped_as == addrInfo.mapped_as);
+        if ('mapped_as' in addrInfo) {
+          addrToHighlight = tableInfo.table
+            .filter(Boolean)
+            .filter((a) => ('mapped_as' in a) && a.mapped_as == addrInfo.mapped_as);
+        }
         break;
       case "same-source-as":
-        addrToHighlight = tableInfo.table
-          .filter(Boolean)
-          .filter((a) => ('source_mapped_as' in addrInfo))
-          .filter((a) => a.source_mapped_as == addrInfo.source_mapped_as);
+        if ('source_mapped_as' in addrInfo) {
+          addrToHighlight = tableInfo.table
+            .filter(Boolean)
+            .filter((a) => ('source_mapped_as' in a) && a.source_mapped_as == addrInfo.source_mapped_as);
+        }
         break;
       case "same-port":
         addrToHighlight = tableInfo.table
@@ -288,7 +291,7 @@ function draw_highlight(addrInfo, state) {
 
 function draw(is_zoom, state) {
   tooltip.style("opacity", 0);
-  transform = state.currentZoom;
+  let transform = state.currentZoom;
   state.context.save();
   state.context.clearRect(0, 0, state.width, state.height);
   state.context.translate(transform.x, transform.y);
@@ -299,7 +302,7 @@ function draw(is_zoom, state) {
 
   if (!is_zoom) {
     for(const [_, tableInfo] of Object.entries(state.tables)) {
-      position = 0;
+      let position = 0;
       for (const addrInfo of tableInfo.table) {
         let [x, y] = tableInfo.positions[position];
         if (addrInfo === undefined) {
@@ -379,8 +382,9 @@ function drawColorLegend(state) {
       colorLegend.html(possible_source_networks.map((k) => `<span style="color:${NETWORK_COLOR[k]}">■</span> ${k}&nbsp;&nbsp;`).join("  "));
       break;
     case "services":
-      // Object with service flag counts (e.g. {1033: 630, 1036: 5, 1037: 156, ..})
-      let flagCounts = tableInfo.table.filter(Boolean).reduce(function (acc, curr) {
+      // Object with service flag counts across both tables (e.g. {1033: 630, 1036: 5, 1037: 156, ..})
+      let allEntries = state.tables.new.table.filter(Boolean).concat(state.tables.tried.table.filter(Boolean));
+      let flagCounts = allEntries.reduce(function (acc, curr) {
         return acc[curr.services] ? ++acc[curr.services] : acc[curr.services] = 1, acc
       }, {})
       let sortedFlags = Object.keys(flagCounts).map(k => ([k, flagCounts[k]])).sort((a, b) => (b[1] - a[1]));
@@ -399,13 +403,15 @@ function drawColorLegend(state) {
       );
       break;
     case "age":
-      let oldest = document.createElement('span');
-      let newest = document.createElement('span');
-      oldest.textContent = "oldest ";
-      newest.textContent = " newest";
-      colorLegend.node().appendChild(oldest)
-      colorLegend.node().appendChild(ramp(state.ageColorScale.interpolator()))
-      colorLegend.node().appendChild(newest)
+      if (state.ageColorScale) {
+        let oldest = document.createElement('span');
+        let newest = document.createElement('span');
+        oldest.textContent = "oldest ";
+        newest.textContent = " newest";
+        colorLegend.node().appendChild(oldest)
+        colorLegend.node().appendChild(ramp(state.ageColorScale.interpolator()))
+        colorLegend.node().appendChild(newest)
+      }
       break;
     case "all-service-bits":
       break;
