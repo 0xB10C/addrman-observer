@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 # TODO: Switch to crates.io version once getrawaddrman is included in a release (>= 0.12)
 corepc-client = { git = "https://github.com/rust-bitcoin/corepc", features = ["client-sync"] }
-env_logger = "0.11.9"
+env_logger = "0.11.10"
 log = "0.4.29"
 serde = "1.0.193"
 toml = "1.0.7"
