@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 corepc-client = { version = "0.13.0", features = ["client-sync"] }
 env_logger = "0.11.9"
-log = "0.4.29"
+log = "0.4.30"
 serde = "1.0.193"
 toml = "1.0.7"
 warp = { version = "0.4.2", features = ["compression", "server"] }
