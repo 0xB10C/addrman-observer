@@ -67,6 +67,9 @@ const highlightSelect = d3.select("#highlight");
 const colorSelect = d3.select("#color");
 const colorLegend = d3.select("#address-color-legend");
 const tooltip = d3.select("#tooltip");
+const searchInput = d3.select("#search");
+const searchCount = d3.select("#search-count");
+const SEARCH_RING_MAX_MATCHES = 50;
 
 function init_addrman_tables(
   height,
@@ -141,6 +144,7 @@ function init_addrman_tables(
     width: width,
     ageColorScale: null,
     stats: null,
+    searchMatches: [],
   };
 
   const zoomContext = d3
@@ -226,6 +230,20 @@ function draw_background(is_zoom, state, highlight) {
 
   if (highlight) {
     draw_highlight(highlight, state);
+  }
+  for (const addrInfo of state.searchMatches) {
+    let [x, y] = state.tables[addrInfo.table].positions[addrInfo.bucket * NUM_ADDR_PER_BUCKET + addrInfo.position];
+    state.contextHighlight.strokeStyle = "red";
+    state.contextHighlight.lineWidth = 1;
+    state.contextHighlight.strokeRect(x, y, ADDR_PIXEL_SIZE, ADDR_PIXEL_SIZE);
+    // with few matches, draw a large zoom-independent ring so they're easy to spot
+    if (state.searchMatches.length <= SEARCH_RING_MAX_MATCHES) {
+      state.contextHighlight.lineWidth = 2 / transform.k;
+      state.contextHighlight.beginPath();
+      state.contextHighlight.arc(x + ADDR_PIXEL_SIZE / 2, y + ADDR_PIXEL_SIZE / 2, 12 / transform.k, 0, 2 * Math.PI);
+      state.contextHighlight.stroke();
+      state.contextHighlight.beginPath(); // don't leave the arc for the fill() below
+    }
   }
   state.contextHighlight.fill();
   state.contextHighlight.restore();
@@ -321,6 +339,20 @@ function draw(is_zoom, state) {
   }
   state.context.fill();
   state.context.restore();
+}
+
+function search(state) {
+  let query = searchInput.node().value.trim().toLowerCase();
+  state.searchMatches = [];
+  if (query) {
+    for (const tableInfo of Object.values(state.tables)) {
+      state.searchMatches.push(...tableInfo.table
+        .filter(Boolean)
+        .filter((a) => a.address.toLowerCase().includes(query)));
+    }
+  }
+  searchCount.text(query ? `${state.searchMatches.length} matches` : "");
+  draw_background(false, state);
 }
 
 function formatTooltip(addrinfo, stats) {
