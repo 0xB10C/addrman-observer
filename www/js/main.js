@@ -37,7 +37,10 @@ function processGetRawAddrman(addrman) {
   statsTable.html(formatStats(state.stats))
   drawColorLegend(state)
   draw(false, state);
+  search(state);
 }
+
+searchInput.on("input", () => search(state));
 
 function loadFromURL(url) {
   console.log("loading getrawaddrman from ", url);
